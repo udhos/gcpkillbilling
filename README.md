@@ -21,8 +21,10 @@ Create GCP pubsub topic and subscription
 
     GCP Project:             my-billing-project
     GCP Pubsub Topic:        budget-alerts
-    GCP Pubsub Subscription: billing-queue
+    GCP Pubsub Subscription: billing-queue (subscription type must be 'pull')
     GCP Billing Account:     accountId
+
+Create a budget under project 'my-billing-project' with notification set to topic 'budget-alerts'.
 
 Publish a test message
 ======================
@@ -33,3 +35,6 @@ Consume the test message
 ========================
 
     killbill my-billing-project billing-queue
+
+
+-x-
