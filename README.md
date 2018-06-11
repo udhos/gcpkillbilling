@@ -1,5 +1,8 @@
 # gcpkillbilling
 
+gcpkillbilling removes all projects from a GCP billing account.
+CAUTION DANGEROUS.
+
 Install GCP SDK
 ===============
 
