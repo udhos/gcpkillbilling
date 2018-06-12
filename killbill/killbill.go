@@ -10,13 +10,17 @@ import (
 
 func killbill(billingAccountID string) error {
 
+	log.Printf("killbill: DRY=%v account=%s", dry, billingAccountID)
+
 	ctx := context.Background()
 	hc, errDc := google.DefaultClient(ctx, cloudbilling.CloudPlatformScope)
 	if errDc != nil {
+		log.Printf("killbill: DRY=%v account=%s could not get default client: %v", dry, billingAccountID, errDc)
 		return errDc
 	}
 	client, errNew := cloudbilling.New(hc)
 	if errNew != nil {
+		log.Printf("killbill: DRY=%v account=%s could not create billing client: %v", dry, billingAccountID, errNew)
 		return errNew
 	}
 
@@ -31,6 +35,7 @@ func killbill(billingAccountID string) error {
 		}
 		return nil // NOTE: returning a non-nil error stops pagination.
 	}); errPages != nil {
+		log.Printf("killbill: DRY=%v account=%s could not page billing project info: %v", dry, billingAccountID, errPages)
 		return errPages
 	}
 
@@ -59,6 +64,7 @@ func killprojbill(ctx context.Context, client *cloudbilling.APIService, info *cl
 
 	resp, errUpdate := client.Projects.UpdateBillingInfo(name, info).Context(ctx).Do()
 	if errUpdate != nil {
+		log.Printf("killprojbill: DRY=%v project=%s account=%s update error: %v", dry, info.ProjectId, info.BillingAccountName, errUpdate)
 		return errUpdate
 	}
 
