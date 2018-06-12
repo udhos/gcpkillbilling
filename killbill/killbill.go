@@ -20,22 +20,31 @@ func killbill(billingAccountID string) error {
 		return errNew
 	}
 
-	name := "billingAccounts/" + billingAccountID
+	var projInfoList []*cloudbilling.ProjectBillingInfo
 
+	name := "billingAccounts/" + billingAccountID
 	call := client.BillingAccounts.Projects.List(name)
 	if errPages := call.Pages(ctx, func(page *cloudbilling.ListProjectBillingInfoResponse) error {
 		for _, v := range page.ProjectBillingInfo {
-			log.Printf("killbill: DRY=%v account=%s project=%s", dry, billingAccountID, v.ProjectId)
-			if errKill := killprojbill(ctx, client, v); errKill != nil {
-				return errKill
-			}
+			log.Printf("killbill: DRY=%v account=%s found: project=%s", dry, billingAccountID, v.ProjectId)
+			projInfoList = append(projInfoList, v)
 		}
 		return nil // NOTE: returning a non-nil error stops pagination.
 	}); errPages != nil {
 		return errPages
 	}
 
-	return nil
+	log.Printf("killbill: DRY=%v account=%s found %d projects", dry, billingAccountID, len(projInfoList))
+
+	var lastErr error
+	for _, i := range projInfoList {
+		if errKill := killprojbill(ctx, client, i); errKill != nil {
+			log.Printf("killbill: DRY=%v account=%s project=%s error: %v", dry, billingAccountID, i.ProjectId, errKill)
+			lastErr = errKill
+		}
+	}
+
+	return lastErr
 }
 
 func killprojbill(ctx context.Context, client *cloudbilling.APIService, info *cloudbilling.ProjectBillingInfo) error {
