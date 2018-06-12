@@ -15,6 +15,17 @@ import (
 const version = "0.0"
 
 var dry = true
+var once = true
+
+func env(me, name string, value *bool) {
+	if v := os.Getenv(name); v != "" {
+		val, err := strconv.ParseBool(v)
+		if err != nil {
+			log.Fatalf("%s: refusing to run with bad env var %s=%s: %v", me, name, v, err)
+		}
+		*value = val
+	}
+}
 
 func main() {
 	me := os.Args[0]
@@ -26,15 +37,10 @@ func main() {
 	projectID := os.Args[1]
 	subscriptionID := os.Args[2]
 
-	if v := os.Getenv("DRY"); v != "" {
-		d, err := strconv.ParseBool(v)
-		if err != nil {
-			log.Fatalf("%s: refusing to run with bad DRY=%s: %v", me, v, err)
-		}
-		dry = d
-	}
+	env(me, "DRY", &dry)
+	env(me, "ONCE", &once)
 
-	log.Printf("%s: version=%s runtime=%s DRY=%v", me, version, runtime.Version(), dry)
+	log.Printf("%s: version=%s runtime=%s DRY=%v ONCE=%v", me, version, runtime.Version(), dry, once)
 
 	pull(projectID, subscriptionID)
 }
@@ -78,14 +84,14 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 	log.Printf("pull: ID=%s data = %q\n", m.ID, m.Data)
 	log.Printf("pull: ID=%s attributes = %v\n", m.ID, m.Attributes)
 
-	billingAccountId, found := m.Attributes["billingAccountId"]
+	billingAccountID, found := m.Attributes["billingAccountId"]
 	if !found {
-		log.Printf("pull: ID=%s missing billingAccountId=[%s] in message attributes", m.ID, billingAccountId)
+		log.Printf("pull: ID=%s missing billingAccountId=[%s] in message attributes", m.ID, billingAccountID)
 		return
 	}
 
-	if errKill := killbill(billingAccountId); errKill != nil {
-		log.Printf("pull: ID=%s failure killing billing for account=%s: %v", m.ID, billingAccountId, errKill)
+	if errKill := killbill(billingAccountID); errKill != nil {
+		log.Printf("pull: ID=%s failure killing billing for account=%s: %v", m.ID, billingAccountID, errKill)
 		return
 	}
 
@@ -93,5 +99,10 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 	if !dry {
 		m.Ack() // message handled
 	}
-	//cancel() // request termination
+
+	log.Printf("pull: ID=%s ONCE=%v finishing", m.ID, once)
+	if once {
+		cancel() // request termination
+	}
 }
+

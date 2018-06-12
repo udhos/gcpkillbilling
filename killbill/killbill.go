@@ -8,7 +8,7 @@ import (
 	"google.golang.org/api/cloudbilling/v1"
 )
 
-func killbill(billingAccountId string) error {
+func killbill(billingAccountID string) error {
 
 	ctx := context.Background()
 	hc, errDc := google.DefaultClient(ctx, cloudbilling.CloudPlatformScope)
@@ -20,12 +20,12 @@ func killbill(billingAccountId string) error {
 		return errNew
 	}
 
-	name := "billingAccounts/" + billingAccountId
+	name := "billingAccounts/" + billingAccountID
 
 	call := client.BillingAccounts.Projects.List(name)
 	if errPages := call.Pages(ctx, func(page *cloudbilling.ListProjectBillingInfoResponse) error {
 		for _, v := range page.ProjectBillingInfo {
-			log.Printf("killbill: DRY=%v account=%s project=%s", dry, billingAccountId, v.ProjectId)
+			log.Printf("killbill: DRY=%v account=%s project=%s", dry, billingAccountID, v.ProjectId)
 			if errKill := killprojbill(ctx, client, v); errKill != nil {
 				return errKill
 			}
