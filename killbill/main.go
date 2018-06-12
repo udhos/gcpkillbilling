@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"sync"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -64,8 +64,6 @@ func pull(projectID, subscriptionID string) {
 	sub.ReceiveSettings.MaxOutstandingMessages = 5
 	sub.ReceiveSettings.MaxOutstandingBytes = 10e6
 
-	var lock sync.RWMutex
-
 	var cctx context.Context
 	var cancel context.CancelFunc
 
@@ -78,9 +76,7 @@ func pull(projectID, subscriptionID string) {
 
 	if errPull := sub.Receive(cctx, func(c context.Context, m *pubsub.Message) {
 		// NOTE: May be called concurrently; synchronize access to shared memory.
-		lock.RLock()
 		handleMessage(c, m, cancel)
-		lock.RUnlock()
 	}); errPull != nil {
 		log.Printf("Receive() error: %v", errPull)
 	}
@@ -99,7 +95,11 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		return
 	}
 
-	errKill := killbill(billingAccountID)
+	accountFormat := checkAccount(billingAccountID)
+
+	var errKill error
+
+	errKill = killbill(billingAccountID)
 	if errKill != nil {
 		// warn only, return below
 		log.Printf("pull: ID=%s failure killing billing for account=%s: %v", m.ID, billingAccountID, errKill)
@@ -111,13 +111,36 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		cancel() // request termination
 	}
 
+	if !accountFormat {
+		log.Printf("pull: ID=%s removing badly formatted account id account=%s", m.ID, billingAccountID)
+		ack(m)
+		return
+	}
+
 	if errKill != nil {
 		// return only, warn above
 		return
 	}
 
+	ack(m)
+}
+
+func ack(m *pubsub.Message) {
 	log.Printf("pull: ID=%s DRY=%v removing from queue", m.ID, dry)
 	if !dry {
 		m.Ack() // message handled
 	}
+}
+
+func checkAccount(account string) bool {
+	parts := strings.Split(account, "-")
+	if len(parts) != 3 {
+		return false
+	}
+	for _, p := range parts {
+		if len(p) != 6 {
+			return false
+		}
+	}
+	return true
 }
