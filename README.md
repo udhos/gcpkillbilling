@@ -24,31 +24,40 @@ Create GCP pubsub topic and subscription
 
 Example:
 
-    GCP Project:             my-main-project
-    GCP Pubsub Topic:          budget-alerts
-    GCP Pubsub Subscription:     billing-queue (subscription type must be 'pull')
-    GCP Billing Account:     accountId
-    GCP Limited Project:       my-capped-project
+    GCP Main Account:        main-account
+    GCP Project:               main-project
+    GCP Pubsub Topic:            budget-alerts
+    GCP Pubsub Subscription:       killbill-queue (subscription type must be 'pull')
+    GCP Limited Account:     capped-account
+    GCP Budget:                capped-budget
+    GCP Limited Project:       capped-project
 
-Create subscription 'billing-queue' under topic 'budget-alerts'.
+Create pubsub topic 'budget-alerts' under project 'main-project'.
 
-Create a budget under project 'my-capped-project' with notification set to topic 'budget-alerts'.
+Create pull-type subscription 'killbill-queue' under topic 'budget-alerts'.
+
+Create a budget 'capped-budget' under account 'capped-account' with notification set to topic 'budget-alerts'.
+
+Create a project 'capped-project' linked to account 'capped-account'.
 
 Publish a test message
 ======================
 
-Publish a fake budget notification under topic 'budget-alerts' for account 'accountId':
+Publish a fake notification under topic 'budget-alerts' for account 'capped-account':
 
-    killbill-pub my-main-project budget-alerts accountId
+    killbill-pub main-project budget-alerts capped-account
 
 Consume the test message
 ========================
 
-Consume notifications from subscription 'billing-queue'. 
+Consume notifications from subscription 'killbill-queue'.
 
-CAUTION: All accounts found in notifications will be detached from all their projects. Those projects will stop, their services will be interrupted, their data will be lost. You have been warned.
+Expected result is: All projects linked to account 'capped-account' should be detached from it.
 
-    killbill my-main-project billing-queue
+CAUTION: All **accounts** found in notifications sent to subscription 'killbill-queue' will be detached from all their projects. All those unlinked projects will stop, their services will be interrupted, their data will be lost. You have been warned.
+
+    killbill main-project killbill-queue
 
 
 -x-
+
