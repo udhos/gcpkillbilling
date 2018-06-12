@@ -45,7 +45,7 @@ func killprojbill(ctx context.Context, client *cloudbilling.APIService, info *cl
 	name := "projects/" + info.ProjectId
 
 	if !dry {
-		info.BillingAccountName = ""
+		info.BillingAccountName = "" // unlink project from billing account
 	}
 
 	resp, errUpdate := client.Projects.UpdateBillingInfo(name, info).Context(ctx).Do()

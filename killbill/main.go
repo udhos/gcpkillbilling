@@ -105,4 +105,3 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		cancel() // request termination
 	}
 }
-
