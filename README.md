@@ -44,7 +44,7 @@ Create a project 'capped-project' linked to account 'capped-account'.
 Create an IAM service account 'main-killbill' to authorize the killbill application. Grant the service account these privileges:
 - Project OWNER in the capped-project. The killbill application needs this permission in order to change the billing info for the project.
 - Pubsub EDITOR (publish/consume messages). The killbill application needs this permission to publish and consume pubsub messages.
-- Billing VIEWER in the capped-account. Killbill application needs this permission to list its attached projects.
+- Billing USER in the capped-account. Killbill application needs this permission to list and remove its attached projects.
 
 Save the service account credentials as: $HOME/killbill_credentials.json
 
