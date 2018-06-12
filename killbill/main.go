@@ -90,18 +90,25 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		return
 	}
 
-	if errKill := killbill(billingAccountID); errKill != nil {
+	errKill := killbill(billingAccountID)
+	if errKill != nil {
+		// warn only, return below
 		log.Printf("pull: ID=%s failure killing billing for account=%s: %v", m.ID, billingAccountID, errKill)
+	}
+
+	// tried once, should exit if once is defined
+	log.Printf("pull: ID=%s ONCE=%v finishing", m.ID, once)
+	if once {
+		cancel() // request termination
+	}
+
+	if errKill != nil {
+		// return only, warn above
 		return
 	}
 
 	log.Printf("pull: ID=%s DRY=%v removing from queue", m.ID, dry)
 	if !dry {
 		m.Ack() // message handled
-	}
-
-	log.Printf("pull: ID=%s ONCE=%v finishing", m.ID, once)
-	if once {
-		cancel() // request termination
 	}
 }
