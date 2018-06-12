@@ -66,7 +66,16 @@ func pull(projectID, subscriptionID string) {
 
 	var lock sync.RWMutex
 
-	cctx, cancel := context.WithTimeout(ctx, 40*time.Second)
+	var cctx context.Context
+	var cancel context.CancelFunc
+
+	if once {
+		cctx, cancel = context.WithTimeout(ctx, 40*time.Second)
+		defer cancel()
+	} else {
+		cctx, cancel = context.WithCancel(ctx)
+	}
+
 	if errPull := sub.Receive(cctx, func(c context.Context, m *pubsub.Message) {
 		// NOTE: May be called concurrently; synchronize access to shared memory.
 		lock.RLock()
