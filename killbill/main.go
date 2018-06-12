@@ -92,6 +92,7 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 	billingAccountID, found := m.Attributes["billingAccountId"]
 	if !found {
 		log.Printf("pull: ID=%s missing billingAccountId=[%s] in message attributes", m.ID, billingAccountID)
+		drain(m, billingAccountID)
 		return
 	}
 
@@ -112,8 +113,7 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 	}
 
 	if !accountFormat {
-		log.Printf("pull: ID=%s removing badly formatted account id account=%s", m.ID, billingAccountID)
-		ack(m)
+		drain(m, billingAccountID)
 		return
 	}
 
@@ -122,6 +122,11 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		return
 	}
 
+	ack(m)
+}
+
+func drain(m *pubsub.Message, billingAccountID string) {
+	log.Printf("pull: ID=%s draining badly formatted account id=[%s]", m.ID, billingAccountID)
 	ack(m)
 }
 
