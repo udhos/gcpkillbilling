@@ -68,6 +68,20 @@ CAUTION: All **accounts** found in notifications sent to subscription 'killbill-
     export GOOGLE_APPLICATION_CREDENTIALS=$HOME/killbill_credentials.json
     killbill main-project killbill-queue
 
+gcloud cli recipes
+==================
+
+Some gcloud cli recipes.
+
+    # publish message to topic
+    gcloud pubsub topics publish projects/PROJECT/topics/TOPIC --attribute="billingAccountId=000000-111111-222222"
+
+    # delete subscription
+    gcloud pubsub subscriptions delete projects/PROJECT/subscriptions/SUBSCRIPTION
+
+    # create subscription
+    gcloud pubsub subscriptions create --topic=projects/PROJECT/topics/TOPIC SUBSCRIPTION
+
 
 -x-
 
