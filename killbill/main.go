@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"log"
 	"os"
 	"runtime"
@@ -96,7 +97,7 @@ func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.Cancel
 		return
 	}
 
-	accountFormat := checkAccount(billingAccountID)
+	accountFormat := checkAccountFormat(billingAccountID)
 
 	var errKill error
 
@@ -137,13 +138,16 @@ func ack(m *pubsub.Message) {
 	}
 }
 
-func checkAccount(account string) bool {
+func checkAccountFormat(account string) bool {
 	parts := strings.Split(account, "-")
 	if len(parts) != 3 {
 		return false
 	}
 	for _, p := range parts {
 		if len(p) != 6 {
+			return false
+		}
+		if _, err := hex.DecodeString(p); err != nil {
 			return false
 		}
 	}
