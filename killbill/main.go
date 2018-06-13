@@ -85,6 +85,7 @@ func pull(projectID, subscriptionID string) {
 	log.Printf("pull: exit project=%s subscription=%s", projectID, subscriptionID)
 }
 
+// handleMessage: NOTE: May be called concurrently; synchronize access to shared memory.
 func handleMessage(ctx context.Context, m *pubsub.Message, cancel context.CancelFunc) {
 	log.Printf("pull: ID=%s PublishTime=%s\n", m.ID, m.PublishTime)
 	log.Printf("pull: ID=%s data = %q\n", m.ID, m.Data)
