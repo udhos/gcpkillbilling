@@ -10,6 +10,7 @@ More information here: https://cloud.google.com/sdk/docs/#linux
 
     wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-192.0.0-linux-x86_64.tar.gz
     tar xf google-cloud-sdk-192.0.0-linux-x86_64.tar.gz
+    ./google-cloud-sdk/install.sh
     gcloud init
 
 Build
